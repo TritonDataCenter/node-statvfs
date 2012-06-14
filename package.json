@@ -1,0 +1,10 @@
+{
+        "name": "statvfs",
+        "description": "node binding to POSIX statvfs (file system information)",
+        "version": "1.0.0",
+        "author": "Mark Cavage <mcavage@gmail.com>",
+        "main": "./lib",
+        "scripts": {
+                "test": "node test/statvfs.test.js"
+        }
+}
