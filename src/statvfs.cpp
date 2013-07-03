@@ -123,7 +123,7 @@ void _statvfs (uv_work_t *req) {
 }
 
 
-void _statvfs_after (uv_work_t *req) {
+void _statvfs_after (uv_work_t *req, int ignore_me_status_in_0_dot_10) {
 	HandleScope scope;
 
 
