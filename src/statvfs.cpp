@@ -24,10 +24,8 @@ static Persistent<String> files_sym;
 static Persistent<String> ffree_sym;
 static Persistent<String> favail_sym;
 static Persistent<String> fsid_sym;
-static Persistent<String> basetype_sym;
 static Persistent<String> flag_sym;
 static Persistent<String> namemax_sym;
-static Persistent<String> fstr_sym;
 
 
 ///--- V8 Nonsense
@@ -102,10 +100,8 @@ Local<Object> build_stats_object(struct statvfs &s) {
 	stats->Set(ffree_sym, Number::New(s.f_ffree));
 	stats->Set(favail_sym, Number::New(s.f_favail));
 	stats->Set(fsid_sym, Number::New(s.f_fsid));
-	stats->Set(basetype_sym, String::New(s.f_basetype));
 	stats->Set(flag_sym, Number::New(s.f_flag));
 	stats->Set(namemax_sym, Number::New(s.f_namemax));
-	stats->Set(fstr_sym, String::New(s.f_fstr));
 
 	return scope.Close(stats);
 }
@@ -192,10 +188,8 @@ void init(Handle<Object> target) {
 	ffree_sym = NODE_PSYMBOL("ffree");
 	favail_sym = NODE_PSYMBOL("favail");
 	fsid_sym = NODE_PSYMBOL("fsid");
-	basetype_sym = NODE_PSYMBOL("basetype");
 	flag_sym = NODE_PSYMBOL("flag");
 	namemax_sym = NODE_PSYMBOL("namemax");
-	fstr_sym = NODE_PSYMBOL("fstr");
 
 	NODE_SET_METHOD(target, "statvfs", _statvfs_entry);
 }
