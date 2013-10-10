@@ -170,7 +170,8 @@ Handle<Value> _statvfs_entry(const Arguments& args) {
 	}
 
 	req->data = baton;
-	uv_queue_work(uv_default_loop(), req, _statvfs, _statvfs_after);
+	uv_queue_work(uv_default_loop(), req, _statvfs,
+	    (uv_after_work_cb)_statvfs_after);
 
 	return Undefined();
 }
