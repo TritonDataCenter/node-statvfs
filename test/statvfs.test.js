@@ -18,7 +18,6 @@ statvfs('/tmp', function (err, stats) {
         assert.ok(stats.ffree);
         assert.ok(stats.favail);
         assert.ok(stats.fsid);
-        assert.ok(stats.basetype);
-        assert.ok(stats.flag);
+        assert.ok(stats.flag !== undefined);
         assert.ok(stats.namemax);
 });
