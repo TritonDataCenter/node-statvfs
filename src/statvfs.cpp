@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/statvfs.h>
 
+#include <nan.h>
 #include <node.h>
 #include <v8.h>
 
@@ -30,25 +31,25 @@ static Persistent<String> namemax_sym;
 
 ///--- V8 Nonsense
 
-#define RETURN_EXCEPTION(MSG)                                           \
-	return v8::ThrowException(v8::Exception::Error(v8::String::New(MSG)))
+#define RETURN_EXCEPTION(MSG)										   \
+	return NanThrowError(v8::Exception::Error(NanNew<String>(MSG)))
 
-#define RETURN_ARGS_EXCEPTION(MSG)                                      \
-	return v8::ThrowException(v8::Exception::TypeError(v8::String::New(MSG)))
+#define RETURN_ARGS_EXCEPTION(MSG)									  \
+	return NanThrowError(v8::Exception::TypeError(NanNew<String>(MSG)))
 
-#define REQUIRE_ARGS(ARGS)			      \
+#define REQUIRE_ARGS(ARGS)				  \
 	if (ARGS.Length() == 0)					\
 		RETURN_ARGS_EXCEPTION("missing arguments");
 
-#define REQUIRE_STRING_ARG(ARGS, I, VAR)			      \
-	REQUIRE_ARGS(ARGS);                                           \
+#define REQUIRE_STRING_ARG(ARGS, I, VAR)				  \
+	REQUIRE_ARGS(ARGS);										   \
 	if (ARGS.Length() <= (I) || !ARGS[I]->IsString())		\
 		RETURN_ARGS_EXCEPTION("argument " #I " must be a String"); \
 	v8::String::Utf8Value VAR(ARGS[I]->ToString());
 
-#define REQUIRE_FUNCTION_ARG(ARGS, I, VAR)                              \
+#define REQUIRE_FUNCTION_ARG(ARGS, I, VAR)							  \
 	REQUIRE_ARGS(ARGS);						\
-	if (ARGS.Length() <= (I) || !ARGS[I]->IsFunction())                   \
+	if (ARGS.Length() <= (I) || !ARGS[I]->IsFunction())				   \
 		RETURN_EXCEPTION("argument " #I " must be a Function");	\
 	v8::Local<v8::Function> VAR = v8::Local<v8::Function>::Cast(ARGS[I]);
 
@@ -73,7 +74,7 @@ public:
 
 	// Inputs
 	char *path;
-	Persistent<Function> callback;
+	NanCallback *callback;
 
 	// Output
 	int rc;
@@ -87,23 +88,23 @@ private:
 
 
 Local<Object> build_stats_object(struct statvfs &s) {
-	HandleScope scope;
+	NanEscapableScope();
 
-	Local<Object> stats = Object::New();
+	Local<Object> stats = NanNew<Object>();
 
-	stats->Set(bsize_sym, Number::New(s.f_bsize));
-	stats->Set(frsize_sym, Number::New(s.f_frsize));
-	stats->Set(blocks_sym, Number::New(s.f_blocks));
-	stats->Set(bfree_sym, Number::New(s.f_bfree));
-	stats->Set(bavail_sym, Number::New(s.f_bavail));
-	stats->Set(files_sym, Number::New(s.f_files));
-	stats->Set(ffree_sym, Number::New(s.f_ffree));
-	stats->Set(favail_sym, Number::New(s.f_favail));
-	stats->Set(fsid_sym, Number::New(s.f_fsid));
-	stats->Set(flag_sym, Number::New(s.f_flag));
-	stats->Set(namemax_sym, Number::New(s.f_namemax));
+	stats->Set(NanNew<String>(bsize_sym), NanNew<Number>(s.f_bsize));
+	stats->Set(NanNew<String>(frsize_sym), NanNew<Number>(s.f_frsize));
+	stats->Set(NanNew<String>(blocks_sym), NanNew<Number>(s.f_blocks));
+	stats->Set(NanNew<String>(bfree_sym), NanNew<Number>(s.f_bfree));
+	stats->Set(NanNew<String>(bavail_sym), NanNew<Number>(s.f_bavail));
+	stats->Set(NanNew<String>(files_sym), NanNew<Number>(s.f_files));
+	stats->Set(NanNew<String>(ffree_sym), NanNew<Number>(s.f_ffree));
+	stats->Set(NanNew<String>(favail_sym), NanNew<Number>(s.f_favail));
+	stats->Set(NanNew<String>(fsid_sym), NanNew<Number>(s.f_fsid));
+	stats->Set(NanNew<String>(flag_sym), NanNew<Number>(s.f_flag));
+	stats->Set(NanNew<String>(namemax_sym), NanNew<Number>(s.f_namemax));
 
-	return scope.Close(stats);
+	return NanEscapeScope(stats);
 }
 
 
@@ -120,7 +121,7 @@ void _statvfs (uv_work_t *req) {
 
 
 void _statvfs_after (uv_work_t *req, int ignore_me_status_in_0_dot_10) {
-	HandleScope scope;
+	NanScope();
 
 
 	int argc = 1;
@@ -131,23 +132,22 @@ void _statvfs_after (uv_work_t *req, int ignore_me_status_in_0_dot_10) {
 		argv[0] = node::ErrnoException(baton->_errno, "statvfs");
 	} else {
 		argc = 2;
-		argv[0] = Local<Value>::New(Null());
+		argv[0] = NanNull();
 		argv[1] = build_stats_object(baton->buf);
 	}
 
 	TryCatch try_catch;
-	baton->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+	baton->callback->Call(argc, argv);
 	if (try_catch.HasCaught())
 		node::FatalException(try_catch);
 
-	baton->callback.Dispose();
+	delete baton->callback;
 	delete baton;
 	delete req;
 }
 
-
-Handle<Value> _statvfs_entry(const Arguments& args) {
-	HandleScope scope;
+NAN_METHOD(_statvfs_entry) {
+	NanScope();
 
 	REQUIRE_STRING_ARG(args, 0, name);
 	REQUIRE_FUNCTION_ARG(args, 1, callback);
@@ -155,8 +155,7 @@ Handle<Value> _statvfs_entry(const Arguments& args) {
 	my_baton_t *baton = new my_baton_t;
 	if (!baton)
 		RETURN_EXCEPTION("out of memory");
-
-	baton->callback = Persistent<Function>::New(callback);
+	baton->callback = new NanCallback(callback);
 	baton->path = strdup(*name);
 	if (!baton->path) {
 		delete baton;
@@ -171,26 +170,26 @@ Handle<Value> _statvfs_entry(const Arguments& args) {
 
 	req->data = baton;
 	uv_queue_work(uv_default_loop(), req, _statvfs,
-	    (uv_after_work_cb)_statvfs_after);
+		(uv_after_work_cb)_statvfs_after);
 
-	return Undefined();
+	NanReturnUndefined();
 }
 
 
 
 ///--- Actually expose this to the outside world
 void init(Handle<Object> target) {
-	bsize_sym = NODE_PSYMBOL("bsize");
-	frsize_sym = NODE_PSYMBOL("frsize");
-	blocks_sym = NODE_PSYMBOL("blocks");
-	bfree_sym = NODE_PSYMBOL("bfree");
-	bavail_sym = NODE_PSYMBOL("bavail");
-	files_sym = NODE_PSYMBOL("files");
-	ffree_sym = NODE_PSYMBOL("ffree");
-	favail_sym = NODE_PSYMBOL("favail");
-	fsid_sym = NODE_PSYMBOL("fsid");
-	flag_sym = NODE_PSYMBOL("flag");
-	namemax_sym = NODE_PSYMBOL("namemax");
+	NanAssignPersistent(bsize_sym, NanNew<String>("bsize"));
+	NanAssignPersistent(frsize_sym, NanNew<String>("frsize"));
+	NanAssignPersistent(blocks_sym, NanNew<String>("blocks"));
+	NanAssignPersistent(bfree_sym, NanNew<String>("bfree"));
+	NanAssignPersistent(bavail_sym, NanNew<String>("bavail"));
+	NanAssignPersistent(files_sym, NanNew<String>("files"));
+	NanAssignPersistent(ffree_sym, NanNew<String>("ffree"));
+	NanAssignPersistent(favail_sym, NanNew<String>("favail"));
+	NanAssignPersistent(fsid_sym, NanNew<String>("fsid"));
+	NanAssignPersistent(flag_sym, NanNew<String>("flag"));
+	NanAssignPersistent(namemax_sym, NanNew<String>("namemax"));
 
 	NODE_SET_METHOD(target, "statvfs", _statvfs_entry);
 }
