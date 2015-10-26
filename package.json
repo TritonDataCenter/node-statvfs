@@ -1,17 +1,27 @@
 {
-        "name": "statvfs",
-        "description": "node binding to POSIX statvfs (file system information)",
-        "version": "2.1.0",
-        "author": "Mark Cavage <mcavage@gmail.com>",
-        "main": "./lib",
-        "scripts": {
-                "test": "node test/statvfs.test.js"
-        },
-        "repository": {
-                "type": "git",
-                "url": "git://github.com/mcavage/node-statvfs.git"
-        },
-        "engines": {
-                "node": ">=0.10.0"
-        }
+    "name": "statvfs",
+    "description": "node binding to POSIX statvfs (file system information)",
+    "version": "2.2.0",
+    "author": "Mark Cavage <mcavage@gmail.com>",
+    "main": "./lib",
+    "license": "MIT",
+    "scripts": {
+        "test": "node test/statvfs.test.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/joyent/node-statvfs.git"
+    },
+    "bugs": {
+        "url": "https://github.com/joyent/node-statvfs/issues"
+    },
+    "engines": {
+        "node": ">=0.10.0"
+    },
+    "devDependencies": {
+        "assert-plus": "^1.0.0"
+    },
+    "dependencies": {
+        "nan": "^2.14.0"
+    }
 }
