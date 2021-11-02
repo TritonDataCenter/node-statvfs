@@ -1,7 +1,7 @@
 {
     "name": "statvfs",
     "description": "node binding to POSIX statvfs (file system information)",
-    "version": "2.2.0",
+    "version": "2.2.1",
     "author": "Mark Cavage <mcavage@gmail.com>",
     "main": "./lib",
     "license": "MIT",
