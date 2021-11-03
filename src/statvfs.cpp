@@ -41,11 +41,14 @@ static Nan::Persistent<String> namemax_sym;
 	if (ARGS.Length() == 0)					\
 		RETURN_ARGS_EXCEPTION("missing arguments");
 
-#define REQUIRE_STRING_ARG(ARGS, I, VAR)				  \
-	REQUIRE_ARGS(ARGS);										   \
-	if (ARGS.Length() <= (I) || !ARGS[I]->IsString())		\
+#define REQUIRE_STRING_ARG(ARGS, I, VAR)				\
+	REQUIRE_ARGS(ARGS);						\
+	if (ARGS.Length() <= (I))					\
 		RETURN_ARGS_EXCEPTION("argument " #I " must be a String"); \
-	Nan::Utf8String VAR(ARGS[I]->ToString());
+	Nan::MaybeLocal<v8::String> _ ## VAR(Nan::To<v8::String>(ARGS[I])); \
+	if (_ ## VAR.IsEmpty())					\
+		RETURN_ARGS_EXCEPTION("argument " #I " must be a String"); \
+	Nan::Utf8String VAR(_ ## VAR.ToLocalChecked());
 
 #define REQUIRE_FUNCTION_ARG(ARGS, I, VAR)							  \
 	REQUIRE_ARGS(ARGS);						\
