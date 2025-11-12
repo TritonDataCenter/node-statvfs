@@ -1,7 +1,7 @@
 {
     "name": "statvfs",
     "description": "node binding to POSIX statvfs (file system information)",
-    "version": "2.2.1",
+    "version": "2.2.2",
     "author": "Mark Cavage <mcavage@gmail.com>",
     "main": "./lib",
     "license": "MIT",
@@ -22,6 +22,6 @@
         "assert-plus": "^1.0.0"
     },
     "dependencies": {
-        "nan": "^2.14.0"
+        "nan": "~2.14.0"
     }
 }
